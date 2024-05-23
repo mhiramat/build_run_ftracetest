@@ -1,0 +1,4 @@
+[submodule "mincs"]
+	path = mincs
+	url = https://github.com/mhiramat/mincs.git
+	branch = master
