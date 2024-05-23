@@ -5,7 +5,11 @@ ermine virtual-machine container.
 
 Prerequisites
 -------------
-You have to install qemu-system-* (arm, aarch64, riscv, x86) and clang.
+You have to install qemu-system-* (arm, aarch64, riscv, x86), llvm, gcc and some packages for building kernel package.
+```
+sudo apt install qemu-system-* llvm gcc
+sudo apt builddep linux
+```
 
 Install
 -------
