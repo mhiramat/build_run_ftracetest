@@ -5,7 +5,7 @@
 # TODO: check prerequisites
 
 set -e
-LC_ALL=en_US.UTF-8 || LC_ALL=c
+export LC_ALL=en_US.UTF-8 || LC_ALL=c
 
 absdir() { # dir
   (cd $1; pwd)
@@ -27,15 +27,17 @@ if [ ! -x $ERMINE ]; then
 fi
 
 build_ermine() { # arch config
-  echo "======in Build kernel ($1, $2) \n======\n"
+  set -e
+  echo -e "======\n Build kernel ($1, $2) \n======\n"
   $ERMINE --rebuild-kernel --arch $1 --config $2
-  echo "======in Successfully build kernel \n======\n"
+  echo -e "======\n Successfully build kernel \n======\n"
 }
 
 run_ermine() { # arch config
-  echo "======in Boot and run build kernel ($1, $2) \n======\n"
+  set -e
+  echo -e "======\n Boot and run build kernel ($1, $2) \n======\n"
   $ERMINE testrun --arch $1 --work $TEST_DIR
-  echo "======in Successfully boot and run \n======\n"
+  echo -e "======\n Successfully boot and run \n======\n"
 }
 
 setup_testdir() {
