@@ -5,25 +5,37 @@
 # TODO: check prerequisites
 
 set -e
+LC_ALL=en_US.UTF-8 || LC_ALL=c
+
+absdir() { # dir
+  (cd $1; pwd)
+}
 
 TOP_DIR=`dirname $0`
+TOP_DIR=`absdir $TOP_DIR`
+
 MINCS_DIR=$TOP_DIR/mincs
 ERMINE=$MINCS_DIR/ermine-breeder
 LINUX_DIR=$MINCS_DIR/work/linux/linux
 FTRACETEST_DIR=$LINUX_DIR/tools/testing/selftests/ftrace
 TEST_DIR=${TOP_DIR}/runtest
+LOG_DIR=${TEST_DIR}/logs
 
 if [ ! -x $ERMINE ]; then 
-	echo "please sync submodule (`git submodule init && git submodule update`)"
+	echo "please sync submodule (\`git submodule init && git submodule update\`)"
 	exit 1
 fi
 
 build_ermine() { # arch config
+  echo "======in Build kernel ($1, $2) \n======\n"
   $ERMINE --rebuild-kernel --arch $1 --config $2
+  echo "======in Successfully build kernel \n======\n"
 }
 
-run_ermine() { # arch
+run_ermine() { # arch config
+  echo "======in Boot and run build kernel ($1, $2) \n======\n"
   $ERMINE testrun --arch $1 --work $TEST_DIR
+  echo "======in Successfully boot and run \n======\n"
 }
 
 setup_testdir() {
@@ -39,9 +51,14 @@ setup_testdir
 
 for arch in $BUILD_ARCH; do
   for conf in $TOP_DIR/configs/*; do
-    build_ermine $arch $conf
+    LOG_DATE=`date +%Y%m%d-%H%M%S`
+    mkdir -p $LOG_DIR/$LOG_DATE
+    ln -s $LOG_DIR/$LOG_DATE $LOG_DIR/latest
+    touch $LOG_DIR/latest/$arch:$conf
+
+    build_ermine $arch $conf 2>&1 | tee $LOG_DIR/latest/build.log
     if echo $RUN_ARCH | grep -qw $arch ; then
-       run_ermine $arch
+       run_ermine $arch $conf $conf 2>&1 | tee $LOG_DIR/latest/runtest.log
     fi
   done
 done

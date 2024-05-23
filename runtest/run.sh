@@ -1,7 +1,8 @@
 #!/bin/sh
 
-LOG_DATE=`date +%Y%m%d-%H%M%S`
-dmesg > /mnt/dmesg-$LOG_DATE
-LOG_DIR=/mnt/logs-$LOG_DATE
+LOG_DIR=/mnt/logs/latest/
+mkdir $LOG_DIR/ftracetest
+
+dmesg > $LOG_DIR/dmesg
 cd /mnt/ftrace
-./ftracetest --logdir $LOG_DIR
+./ftracetest --logdir $LOG_DIR/ftracetest
