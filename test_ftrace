@@ -7,7 +7,7 @@
 CONFS="$*"
 
 set -e
-export LC_ALL=en_US.UTF-8 || LC_ALL=c
+export LANG=en_US.UTF-8 || export LANG=c
 
 absdir() { # dir
   (cd $1; pwd)
