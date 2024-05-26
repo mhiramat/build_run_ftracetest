@@ -4,6 +4,8 @@
 
 # TODO: check prerequisites
 
+CONFS="$*"
+
 set -e
 export LC_ALL=en_US.UTF-8 || LC_ALL=c
 
@@ -51,8 +53,12 @@ RUN_ARCH="arm64 riscv x86_64"
 
 setup_testdir
 
+if [ -z "$CONFS" ]; then
+  CONFS="$TOP_DIR/configs/*"
+fi
+
 for arch in $BUILD_ARCH; do
-  for conf in $TOP_DIR/configs/*; do
+  for conf in $CONFS; do
     LOG_DATE=`date +%Y%m%d-%H%M%S`
     mkdir -p $LOG_DIR/$LOG_DATE
     rm -f $LOG_DIR/latest
