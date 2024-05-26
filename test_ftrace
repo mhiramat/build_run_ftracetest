@@ -18,8 +18,9 @@ TOP_DIR=`absdir $TOP_DIR`
 
 MINCS_DIR=$TOP_DIR/mincs
 ERMINE=$MINCS_DIR/ermine-breeder
-LINUX_DIR=$MINCS_DIR/work/linux/linux
-FTRACETEST_DIR=$LINUX_DIR/tools/testing/selftests/ftrace
+MINCS_LINUX_DIR=$MINCS_DIR/work/linux
+LINUX_SRC_DIR=$MINCS_LINUX_DIR/linux
+FTRACETEST_DIR=$LINUX_SRC_DIR/tools/testing/selftests/ftrace
 TEST_DIR=${TOP_DIR}/runtest
 LOG_DIR=${TEST_DIR}/logs
 
@@ -29,10 +30,12 @@ if [ ! -x $ERMINE ]; then
 fi
 
 build_ermine() { # arch config
-  set -e
   echo -e "======\n Build kernel ($1, $2) \n======\n"
-  $ERMINE --rebuild-kernel --arch $1 --config $2
-  echo -e "======\n Successfully build kernel \n======\n"
+  if $ERMINE --rebuild-kernel --arch $1 --config $2 ; then
+    echo -e "======\n Successfully build kernel \n======\n"
+  else
+    echo "Build failure"
+  fi
 }
 
 run_ermine() { # arch config
@@ -48,7 +51,7 @@ setup_testdir() {
 }
 
 #BUILD_ARCH="arm arm64 powerpc loongarch riscv i386 x86_64"
-BUILD_ARCH=x86_64
+BUILD_ARCH="x86_64"
 RUN_ARCH="arm64 riscv x86_64"
 
 setup_testdir
@@ -63,9 +66,13 @@ for arch in $BUILD_ARCH; do
     mkdir -p $LOG_DIR/$LOG_DATE
     rm -f $LOG_DIR/latest
     (cd $LOG_DIR; ln -s $LOG_DATE latest)
-    touch $LOG_DIR/latest/$arch:`basename $conf`
-
+    CONFIG=$LOG_DIR/latest/$arch:`basename $conf`
+    touch $CONFIG
     build_ermine $arch $conf 2>&1 | tee $LOG_DIR/latest/build.log
+    cp $MINCS_LINUX_DIR/build-$arch/.config $LOG_DIR/latest/kconfig
+    if grep -q "Build failure" $LOG_DIR/latest/build.log ; then
+      continue;
+    fi
     if echo $RUN_ARCH | grep -qw $arch ; then
        run_ermine $arch $conf $conf 2>&1 | tee $LOG_DIR/latest/runtest.log
     fi
