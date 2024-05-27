@@ -21,8 +21,7 @@ ERMINE=$MINCS_DIR/ermine-breeder
 MINCS_LINUX_DIR=$MINCS_DIR/work/linux
 LINUX_SRC_DIR=$MINCS_LINUX_DIR/linux
 FTRACETEST_DIR=$LINUX_SRC_DIR/tools/testing/selftests/ftrace
-TEST_DIR=${TOP_DIR}/runtest
-LOG_DIR=${TEST_DIR}/logs
+SCRIPT_DIR=$TOP_DIR/scripts
 
 if [ ! -x $ERMINE ]; then 
 	echo "please sync submodule (\`git submodule init && git submodule update\`)"
@@ -45,16 +44,24 @@ run_ermine() { # arch config
   echo -e "======\n Successfully boot and run \n======\n"
 }
 
-setup_testdir() {
-  rm -rf $TEST_DIR/ftrace
-  cp -r $FTRACETEST_DIR $TEST_DIR/
+setup_testdir() { # test-dir
+  mkdir -p $1
+  cp -r $FTRACETEST_DIR $1/
+  cp $SCRIPT_DIR/run-ftracetest.sh $1/run.sh
+  (cd `dirname $1`
+  rm -f latest
+  ln -s `basename $1` latest)
 }
 
 #BUILD_ARCH="arm arm64 powerpc loongarch riscv i386 x86_64"
 BUILD_ARCH="x86_64"
 RUN_ARCH="arm64 riscv x86_64"
 
-setup_testdir
+TEST_DATE=`date +%Y%m%d-%H%M%S`
+RESULT_DIR=${TOP_DIR}/results
+TEST_DIR=${RESULT_DIR}/$TEST_DATE/
+
+setup_testdir $TEST_DIR
 
 if [ -z "$CONFS" ]; then
   CONFS="$TOP_DIR/configs/*"
@@ -62,19 +69,18 @@ fi
 
 for arch in $BUILD_ARCH; do
   for conf in $CONFS; do
-    LOG_DATE=`date +%Y%m%d-%H%M%S`
-    mkdir -p $LOG_DIR/$LOG_DATE
-    rm -f $LOG_DIR/latest
-    (cd $LOG_DIR; ln -s $LOG_DATE latest)
-    CONFIG=$LOG_DIR/latest/$arch:`basename $conf`
-    touch $CONFIG
-    build_ermine $arch $conf 2>&1 | tee $LOG_DIR/latest/build.log
-    cp $MINCS_LINUX_DIR/build-$arch/.config $LOG_DIR/latest/kconfig
-    if grep -q "Build failure" $LOG_DIR/latest/build.log ; then
+    LOG_DIR=$TEST_DIR/$arch:`basename $conf`
+    mkdir -p $LOG_DIR
+    (cd $TEST_DIR
+    rm -f current
+    ln -s $arch:`basename $conf` current)
+    build_ermine $arch $conf 2>&1 | tee $LOG_DIR/build.log
+    cp $MINCS_LINUX_DIR/build-$arch/.config $LOG_DIR/kconfig
+    if grep -q "Build failure" $LOG_DIR/build.log ; then
       continue;
     fi
     if echo $RUN_ARCH | grep -qw $arch ; then
-       run_ermine $arch $conf $conf 2>&1 | tee $LOG_DIR/latest/runtest.log
+       run_ermine $arch $conf $conf 2>&1 | tee $LOG_DIR/runtest.log
     fi
   done
 done
