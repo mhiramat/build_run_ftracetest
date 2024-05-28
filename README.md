@@ -7,7 +7,7 @@ Prerequisites
 -------------
 You have to install qemu-system-* (arm, aarch64, riscv, x86), llvm, gcc and some packages for building kernel package.
 ```
-sudo apt install qemu-system-* llvm gcc
+sudo apt install qemu-system llvm lld
 sudo apt builddep linux
 ```
 
