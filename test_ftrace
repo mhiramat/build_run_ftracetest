@@ -67,20 +67,33 @@ if [ -z "$CONFS" ]; then
   CONFS="$TOP_DIR/configs/*"
 fi
 
+exit_fail() { # err_msg
+  echo $1
+  exit 1
+}
+
+check_ermine() { #log-directory
+  for checker in $SCRIPT_DIR/check-*.sh; do
+    $checker $1 || exit_fail `basename $checker`" failed."
+  done
+}
+
 for arch in $BUILD_ARCH; do
   for conf in $CONFS; do
-    LOG_DIR=$TEST_DIR/$arch:`basename $conf`
+    CONFIG=$arch:`basename $conf`
+    LOG_DIR=$TEST_DIR/$CONFIG
     mkdir -p $LOG_DIR
     (cd $TEST_DIR
     rm -f current
-    ln -s $arch:`basename $conf` current)
+    ln -s $CONFIG current)
     build_ermine $arch $conf 2>&1 | tee $LOG_DIR/build.log
     cp $MINCS_LINUX_DIR/build-$arch/.config $LOG_DIR/kconfig
     if grep -q "Build failure" $LOG_DIR/build.log ; then
-      continue;
+      exit_fail "Failed to build $CONFIG"
     fi
     if echo $RUN_ARCH | grep -qw $arch ; then
        run_ermine $arch $conf $conf 2>&1 | tee $LOG_DIR/runtest.log
+       check_ermine $LOG_DIR
     fi
   done
 done

@@ -44,10 +44,18 @@ ln -s $TOPDIR/linux mincs/work/linux/linux
 
 Run test
 --------
+Run following command.
 
 ```
 ./test_ftrace
 ```
+
+
+Test results
+========
+
+Results are stored under `results/<DATE>` directory.
+
 
 TODO
 ----
