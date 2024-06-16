@@ -4,7 +4,45 @@
 
 # TODO: check prerequisites
 
-CONFS="$*"
+usage() {
+  echo << EOF
+Usage:
+ $0 [options] [CONFIGS]
+
+Options:
+   -a, --arch <ARCH>	Specify test architectures, which are space separated.
+   -h, --help		Show this message.
+EOF
+exit 0
+}
+
+DEF_ARCH=x86_64
+CONFS=
+ARCH=
+
+while [ "$#" != 0 ]; do
+  ARG=$1
+  shift 1
+  case $ARG in
+   -a|--arch)
+     ARCH="$ARCH $1"
+     shift 1
+     ;;
+   -h|--help)
+     usage
+     ;;
+   *)
+     if [ -f $ARG ]; then
+       CONFS="$CONFS $ARG"
+     else
+       usage
+     fi
+  esac
+done
+
+if [ -z "$ARCH" ]; then
+  ARCH="$DEF_ARCH"
+fi
 
 set -e
 export LANG=en_US.UTF-8 || export LANG=c
@@ -54,7 +92,7 @@ setup_testdir() { # test-dir
 }
 
 #BUILD_ARCH="arm arm64 powerpc loongarch riscv i386 x86_64"
-BUILD_ARCH="x86_64"
+BUILD_ARCH="$ARCH"
 RUN_ARCH="arm64 riscv x86_64"
 
 TEST_DATE=`date +%Y%m%d-%H%M%S`
