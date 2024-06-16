@@ -11,6 +11,7 @@ Usage:
 
 Options:
    -a, --arch <ARCH>	Specify test architectures, which are space separated.
+   -b, --buildonly      Skip run tests on qemu.
    -h, --help		Show this message.
 EOF
 exit 0
@@ -19,6 +20,7 @@ exit 0
 DEF_ARCH=x86_64
 CONFS=
 ARCH=
+BUILD_ONLY=0
 
 while [ "$#" != 0 ]; do
   ARG=$1
@@ -27,6 +29,9 @@ while [ "$#" != 0 ]; do
    -a|--arch)
      ARCH="$ARCH $1"
      shift 1
+     ;;
+   -b|--buildonly)
+     BUILD_ONLY=1
      ;;
    -h|--help)
      usage
@@ -129,7 +134,7 @@ for arch in $BUILD_ARCH; do
     if grep -q "Build failure" $LOG_DIR/build.log ; then
       exit_fail "Failed to build $CONFIG"
     fi
-    if echo $RUN_ARCH | grep -qw $arch ; then
+    if [ $BUILD_ONLY -eq 0 ] && echo $RUN_ARCH | grep -qw $arch ; then
        run_ermine $arch $conf $conf 2>&1 | tee $LOG_DIR/runtest.log
        check_ermine $LOG_DIR
     fi
