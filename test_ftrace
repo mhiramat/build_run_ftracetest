@@ -12,6 +12,7 @@ Usage:
 Options:
    -a, --arch <ARCH>	Specify test architectures, which are space separated.
    -b, --buildonly      Skip run tests on qemu.
+   -i, --ignorefail     Ignore failure and continue another configs.
    -h, --help		Show this message.
 EOF
 exit 0
@@ -21,6 +22,7 @@ DEF_ARCH=x86_64
 CONFS=
 ARCH=
 BUILD_ONLY=0
+IGNORE_FAIL=0
 
 while [ "$#" != 0 ]; do
   ARG=$1
@@ -32,6 +34,9 @@ while [ "$#" != 0 ]; do
      ;;
    -b|--buildonly)
      BUILD_ONLY=1
+     ;;
+   -i|--ignorefail)
+     IGNORE_FAIL=1
      ;;
    -h|--help)
      usage
@@ -112,6 +117,10 @@ fi
 
 exit_fail() { # err_msg
   echo $1
+  if [ $IGNORE_FAIL -eq 1 ]; then
+    echo "... but ignore this failure because --ignorefail option is specified."
+    return 0
+  fi
   exit 1
 }
 
