@@ -149,3 +149,5 @@ for arch in $BUILD_ARCH; do
     fi
   done
 done
+
+echo "Done. You can find the results in; $TEST_DIR"
