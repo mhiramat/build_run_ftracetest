@@ -13,6 +13,7 @@ Options:
    -a, --arch <ARCH>	Specify test architectures, which are space separated.
    -b, --buildonly      Skip run tests on qemu.
    -i, --ignorefail     Ignore failure and continue another configs.
+   -r, --results	Set results directory (e.g. for bisect).
    -h, --help		Show this message.
 EOF
 exit 0
@@ -23,6 +24,7 @@ CONFS=
 ARCH=
 BUILD_ONLY=0
 IGNORE_FAIL=0
+RESULTS_DIR=
 
 while [ "$#" != 0 ]; do
   ARG=$1
@@ -37,6 +39,10 @@ while [ "$#" != 0 ]; do
      ;;
    -i|--ignorefail)
      IGNORE_FAIL=1
+     ;;
+   -r|--results)
+     RESULTS_DIR=$1
+     shift 1
      ;;
    -h|--help)
      usage
@@ -106,7 +112,9 @@ BUILD_ARCH="$ARCH"
 RUN_ARCH="arm64 riscv x86_64"
 
 TEST_DATE=`date +%Y%m%d-%H%M%S`
-RESULT_DIR=${TOP_DIR}/results
+if [ -z "$RESULT_DIR" ]; then
+  RESULT_DIR=${TOP_DIR}/results
+fi
 TEST_DIR=${RESULT_DIR}/$TEST_DATE/
 
 setup_testdir $TEST_DIR
