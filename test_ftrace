@@ -43,11 +43,23 @@ while [ "$#" != 0 ]; do
      IGNORE_FAIL=1
      ;;
    -r|--results)
-     RESULTS_DIR=$1
+     if [ -d $1 ]; then
+        RESULTS_DIR=`cd $1; pwd`
+     else
+	echo "$1 is not a directory."
+	exit 1
+     fi
      shift 1
      ;;
    -t|--testscript)
-     TESTSCRIPT=$1
+     if [ -f $1 ]; then
+       TESTSCRIPT_DIR=`dirname $1`
+       TESTSCRIPT_NAME=`basename $1`
+       TESTSCRIPT=`cd $TESTSCRIPT_DIR; pwd`/$TESTSCRIPT_NAME
+     else
+	echo "$1 is not a file."
+	exit 1
+     fi
      shift 1
      ;;
    -h|--help)
